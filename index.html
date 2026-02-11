@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR.js Gesture Mars</title>
+    <title>AR Mars - Interactive</title>
     
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
@@ -12,22 +12,14 @@
     <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; }
-        #permission-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
-        }
-        #start-btn { padding: 15px 30px; background: #28a745; color: white; border: none; border-radius: 50px; font-size: 18px; }
+        body { margin: 0; overflow: hidden; background: #000; }
+        #ui { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; color: white; text-align: center; pointer-events: none; }
     </style>
 </head>
 
 <body>
-
-    <div id="permission-container">
-        <h2>โหมดควบคุมโมเดล</h2>
-        <p>1 นิ้ว = หมุน | 2 นิ้ว = ขยาย/ย่อ</p>
-        <button id="start-btn">เริ่มใช้งาน</button>
+    <div id="ui">
+        <p>1.5 นิ้ว: หมุน | 2 นิ้ว: ขยาย/ย่อ</p>
     </div>
 
     <a-scene 
@@ -41,34 +33,22 @@
         </a-assets>
 
         <a-entity 
-            id="mars"
+            id="mars-wrapper"
+            gesture-handler="minScale: 0.2; maxScale: 10"
             class="clickable"
-            gltf-model="#mars-model" 
-            position="0 1.2 -3" 
-            scale="1 1 1"
-            animation-mixer
-            gesture-handler="minScale: 0.25; maxScale: 10">
+            position="0 1 -3">
+            
+            <a-entity 
+                id="mars-model-entity"
+                gltf-model="#mars-model" 
+                scale="1 1 1"
+                animation-mixer>
+            </a-entity>
         </a-entity>
 
         <a-light type="ambient" intensity="1.5"></a-light>
-        <a-camera look-controls raycaster="objects: .clickable" cursor="rayOrigin: mouse;"></a-camera>
+        
+        <a-camera id="camera" look-controls="enabled: true" raycaster="objects: .clickable" cursor="rayOrigin: mouse;"></a-camera>
     </a-scene>
-
-    <script>
-        const startBtn = document.getElementById('start-btn');
-        const container = document.getElementById('permission-container');
-
-        startBtn.addEventListener('click', function() {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(response => {
-                        if (response == 'granted') { container.style.display = 'none'; }
-                    })
-                    .catch(console.error);
-            } else {
-                container.style.display = 'none';
-            }
-        });
-    </script>
 </body>
 </html>
