@@ -9,9 +9,9 @@
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; }
-        /* ซ่อน UI สแกนภาพของ MindAR เพราะเราไม่ได้ใช้ */
-        .mindar-ui-overlay { display: none !important; }
+        /* บังคับให้หน้าจอไม่ขาวถ้ากล้องยังไม่โหลด */
+        body { margin: 0; background-color: black; } 
+        canvas { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
