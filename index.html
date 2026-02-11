@@ -62,5 +62,35 @@
         </a-camera>
 
     </a-scene>
+    <script>
+        let startY = 0;
+        let startScale = 1;
+        const mars = document.querySelector('#mars-wrapper');
+        const sensitivity = 0.005; // ปรับความไวในการขยายที่นี่
+
+        // เมื่อเริ่มแตะหน้าจอ
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) { // ถ้านิ้วเดียว
+                startY = e.touches[0].pageY;
+                startScale = mars.getAttribute('scale').x;
+            }
+        });
+
+        // เมื่อเลื่อนนิ้ว
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1) {
+                let currentY = e.touches[0].pageY;
+                let diffY = startY - currentY; // เลื่อนขึ้นเป็นบวก เลื่อนลงเป็นลบ
+                
+                // คำนวณ Scale ใหม่
+                let newScale = startScale + (diffY * sensitivity);
+                
+                // จำกัดขนาดไม่ให้เล็กหรือใหญ่เกินไป
+                newScale = Math.min(Math.max(newScale, 0.1), 10); 
+                
+                mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
+            }
+        });
+    </script>
 </body>
 </html>
