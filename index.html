@@ -100,19 +100,37 @@
             }
         });
 
-        // --- ระบบถ่ายรูป ---
+        // --- ระบบถ่ายรูป (เวอร์ชันแก้ทางเทคนิค) ---
         const captureBtn = document.querySelector('#capture-btn');
         captureBtn.addEventListener('click', () => {
             const scene = document.querySelector('a-scene');
-            // สร้าง canvas เพื่อรวมภาพจากกล้องและโมเดล
-            const canvas = scene.components.screenshot.getCanvas('perspective');
-            const dataURL = canvas.toDataURL("image/png");
+            const video = document.querySelector('video'); // ดึง Video จาก AR.js
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
             
-            // สร้าง Link สำหรับดาวน์โหลด
-            const link = document.createElement('a');
-            link.download = 'mars-ar-photo.png';
-            link.href = dataURL;
-            link.click();
+            // 1. ตั้งค่าขนาด Canvas ให้เท่ากับขนาดหน้าจอจริง
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // 2. วาดภาพจากกล้องลงไปก่อน
+            if (video) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
+
+            // 3. วาดโมเดล 3D ทับลงไป
+            const sceneCanvas = scene.components.screenshot.getCanvas('perspective');
+            ctx.drawImage(sceneCanvas, 0, 0, canvas.width, canvas.height);
+
+            // 4. แปลงเป็นรูปภาพและดาวน์โหลด
+            try {
+                const dataURL = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = 'mars-ar-capture.png';
+                link.href = dataURL;
+                link.click();
+            } catch (err) {
+                alert("ไม่สามารถบันทึกภาพได้โดยตรงบนเบราว์เซอร์นี้ กรุณาใช้การแคปหน้าจอแทนครับ");
+            }
         });
 
         // --- Gesture เดิมของคุณ ---
