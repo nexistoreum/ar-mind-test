@@ -2,46 +2,38 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars AR - Forever Free</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
     <style>
       body { margin: 0; overflow: hidden; }
-      #start-button {
-        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-        padding: 15px 30px; font-size: 18px; background: #ff4500; color: white;
-        border: none; border-radius: 50px; z-index: 10; cursor: pointer;
-      }
+      #btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; padding: 15px; border-radius: 20px; background: #ff4500; color: white; border: none; }
     </style>
   </head>
   <body>
+    <button id="btn">เริ่มเปิดกล้องและเสียง</button>
+    <audio id="audio" src="VENUS_Master.mp3" loop></audio>
 
-    <button id="start-button">เริ่มดูดาวอังคาร (เปิดเสียง)</button>
-    <audio id="ar-audio" src="VENUS_Master.mp3" loop></audio>
-
-    <a-scene embedded color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false">
+    <a-scene mindar-image="autoStart: false;" embedded vr-mode-ui="enabled: false">
       <a-assets>
-        <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
+        <a-asset-item id="mars" src="mars_glb-opt.glb"></a-asset-item>
       </a-assets>
-
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <a-entity id="target" position="0 0 -3">
-        <a-gltf-model src="#mars-model" scale="0.8 0.8 0.8" animation-mixer></a-gltf-model>
+      <a-entity position="0 0 -2">
+        <a-gltf-model src="#mars" scale="0.5 0.5 0.5" animation-mixer></a-gltf-model>
       </a-entity>
-
-      <a-light type="ambient" intensity="1.2"></a-light>
     </a-scene>
 
     <script>
-      const btn = document.querySelector('#start-button');
-      const audio = document.querySelector('#ar-audio');
+      const sceneEl = document.querySelector('a-scene');
+      const btn = document.querySelector('#btn');
+      const audio = document.querySelector('#audio');
 
       btn.addEventListener('click', () => {
-        audio.play().catch(err => console.log("Audio error"));
-        btn.style.display = 'none'; // กดแล้วปุ่มหายไป
+        // เริ่มระบบ AR และกล้อง
+        sceneEl.systems['mindar-image-system'].start(); 
+        audio.play();
+        btn.style.display = 'none';
       });
     </script>
   </body>
