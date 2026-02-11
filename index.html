@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR Mars - Interactive</title>
+    <title>Interactive AR Mars</title>
     
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
@@ -12,14 +12,19 @@
     <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        #ui { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; color: white; text-align: center; pointer-events: none; }
+        body { margin: 0; overflow: hidden; }
+        #instructions {
+            position: fixed; bottom: 20px; width: 100%;
+            text-align: center; color: white; z-index: 10;
+            font-family: sans-serif; pointer-events: none;
+            text-shadow: 1px 1px 2px black;
+        }
     </style>
 </head>
 
-<body>
-    <div id="ui">
-        <p>1.5 นิ้ว: หมุน | 2 นิ้ว: ขยาย/ย่อ</p>
+<body style="margin: 0; overflow: hidden;">
+    <div id="instructions">
+        ใช้นิ้วลากเพื่อหมุน | 2 นิ้วเพื่อย่อ-ขยาย
     </div>
 
     <a-scene 
@@ -34,9 +39,9 @@
 
         <a-entity 
             id="mars-wrapper"
-            gesture-handler="minScale: 0.2; maxScale: 10"
+            position="0 1.2 -5" 
             class="clickable"
-            position="0 1 -3">
+            gesture-handler="minScale: 0.1; maxScale: 10">
             
             <a-entity 
                 id="mars-model-entity"
@@ -47,8 +52,15 @@
         </a-entity>
 
         <a-light type="ambient" intensity="1.5"></a-light>
-        
-        <a-camera id="camera" look-controls="enabled: true" raycaster="objects: .clickable" cursor="rayOrigin: mouse;"></a-camera>
+        <a-light type="directional" position="1 2 1" intensity="0.5"></a-light>
+
+        <a-camera 
+            id="camera" 
+            look-controls 
+            raycaster="objects: .clickable" 
+            cursor="rayOrigin: mouse;">
+        </a-camera>
+
     </a-scene>
 </body>
 </html>
