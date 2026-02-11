@@ -3,79 +3,92 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR.js Fixed Mars (Permission Fix)</title>
+    <title>Interactive AR Mars</title>
     
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+    
+    <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; }
-        /* สไตล์ปุ่มกดขอสิทธิ์ */
-        #permission-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; text-align: center; padding: 20px;
-        }
-        #start-btn {
-            padding: 15px 30px; background: #007bff; color: white;
-            border: none; border-radius: 50px; font-size: 18px; cursor: pointer;
-            margin-top: 20px; box-shadow: 0 4px 15px rgba(0,123,255,0.4);
+        body { margin: 0; overflow: hidden; }
+        #instructions {
+            position: fixed; bottom: 20px; width: 100%;
+            text-align: center; color: white; z-index: 10;
+            font-family: sans-serif; pointer-events: none;
+            text-shadow: 1px 1px 2px black;
         }
     </style>
 </head>
 
-<body>
-
-    <div id="permission-container">
-        <h2>พร้อมส่องดาวอังคารหรือยัง?</h2>
-        <p>กรุณากดปุ่มด้านล่างและเลือก "Allow" <br> เพื่อไม่ให้โมเดลติดหน้าจอ</p>
-        <button id="start-btn">เริ่มใช้งาน AR</button>
+<body style="margin: 0; overflow: hidden;">
+    <div id="instructions">
+        ใช้นิ้วลากเพื่อหมุน | 2 นิ้วเพื่อย่อ-ขยาย
     </div>
 
     <a-scene 
         embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
-        vr-mode-ui="enabled: false">
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        vr-mode-ui="enabled: false"
+        gesture-detector>
 
         <a-assets>
             <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
         </a-assets>
 
         <a-entity 
-            id="mars"
-            gltf-model="#mars-model" 
-            position="0 1.2 -3" 
-            scale="0.8 0.8 0.8"
-            animation-mixer>
+            id="mars-wrapper"
+            position="0 1.2 -5" 
+            class="clickable"
+            gesture-handler="minScale: 0.1; maxScale: 10">
+            
+            <a-entity 
+                id="mars-model-entity"
+                gltf-model="#mars-model" 
+                scale="1 1 1"
+                animation-mixer>
+            </a-entity>
         </a-entity>
 
         <a-light type="ambient" intensity="1.5"></a-light>
         <a-light type="directional" position="1 2 1" intensity="0.5"></a-light>
 
-        <a-entity camera look-controls></a-entity>
+        <a-camera 
+            id="camera" 
+            look-controls 
+            raycaster="objects: .clickable" 
+            cursor="rayOrigin: mouse;">
+        </a-camera>
+
     </a-scene>
-
     <script>
-        const startBtn = document.getElementById('start-btn');
-        const container = document.getElementById('permission-container');
+        let startY = 0;
+        let startScale = 1;
+        const mars = document.querySelector('#mars-wrapper');
+        const sensitivity = 0.005; // ปรับความไวในการขยายที่นี่
 
-        startBtn.addEventListener('click', function() {
-            // 1. ขอสิทธิ์ Motion (สำหรับ iOS 13+)
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(response => {
-                        if (response == 'granted') {
-                            container.style.display = 'none'; // ซ่อนหน้าต่างเมื่อได้รับสิทธิ์
-                        } else {
-                            alert('คุณต้องอนุญาตสิทธิ์เพื่อให้ AR ทำงานได้อย่างถูกต้อง');
-                        }
-                    })
-                    .catch(console.error);
-            } else {
-                // สำหรับ Android หรือ Browser อื่นที่ไม่ต้องขอสิทธิ์พิเศษ
-                container.style.display = 'none';
+        // เมื่อเริ่มแตะหน้าจอ
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) { // ถ้านิ้วเดียว
+                startY = e.touches[0].pageY;
+                startScale = mars.getAttribute('scale').x;
+            }
+        });
+
+        // เมื่อเลื่อนนิ้ว
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1) {
+                let currentY = e.touches[0].pageY;
+                let diffY = startY - currentY; // เลื่อนขึ้นเป็นบวก เลื่อนลงเป็นลบ
+                
+                // คำนวณ Scale ใหม่
+                let newScale = startScale + (diffY * sensitivity);
+                
+                // จำกัดขนาดไม่ให้เล็กหรือใหญ่เกินไป
+                newScale = Math.min(Math.max(newScale, 0.1), 10); 
+                
+                mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
             }
         });
     </script>
