@@ -8,33 +8,52 @@
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    
     <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
     <style>
         body { margin: 0; overflow: hidden; }
         #instructions {
-            position: fixed; bottom: 20px; width: 100%;
+            position: fixed; bottom: 80px; width: 100%;
             text-align: center; color: white; z-index: 10;
             font-family: sans-serif; pointer-events: none;
             text-shadow: 1px 1px 2px black;
+        }
+
+        /* ปุ่มถ่ายรูป */
+        #capture-btn {
+            position: fixed; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 60px;
+            background: white; border-radius: 50%;
+            border: 5px solid rgba(255,255,255,0.5);
+            z-index: 100; cursor: pointer;
+        }
+
+        /* ปุ่มเสียง */
+        #sound-btn {
+            position: fixed; top: 20px; left: 20px;
+            width: 40px; height: 40px;
+            background: rgba(0,0,0,0.5); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; cursor: pointer; color: white; font-size: 24px;
         }
     </style>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <div id="instructions">
-        ใช้นิ้วลากเพื่อหมุน | 2 นิ้วเพื่อย่อ-ขยาย
-    </div>
+    
+    <div id="sound-btn">🔊</div>
+    <div id="capture-btn"></div>
 
     <a-scene 
         embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false;"
+        arjs="sourceType: webcam; debugUIEnabled: false; preserveDrawingBuffer: true;"
         vr-mode-ui="enabled: false"
         gesture-detector>
 
         <a-assets>
             <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
+            <audio id="bg-music" src="VENUS_Master.mp3" loop="true"></audio>
         </a-assets>
 
         <a-entity 
@@ -62,32 +81,77 @@
         </a-camera>
 
     </a-scene>
+
     <script>
+        // --- ระบบเสียง ---
+        const soundBtn = document.querySelector('#sound-btn');
+        const audio = document.querySelector('#bg-music');
+        let isMuted = true;
+
+        soundBtn.addEventListener('click', () => {
+            if (isMuted) {
+                audio.play();
+                soundBtn.innerText = '🔊';
+                isMuted = false;
+            } else {
+                audio.pause();
+                soundBtn.innerText = '🔈';
+                isMuted = true;
+            }
+        });
+
+        // --- ระบบถ่ายรูป (เวอร์ชันแก้ทางเทคนิค) ---
+        const captureBtn = document.querySelector('#capture-btn');
+        captureBtn.addEventListener('click', () => {
+            const scene = document.querySelector('a-scene');
+            const video = document.querySelector('video'); // ดึง Video จาก AR.js
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 1. ตั้งค่าขนาด Canvas ให้เท่ากับขนาดหน้าจอจริง
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // 2. วาดภาพจากกล้องลงไปก่อน
+            if (video) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
+
+            // 3. วาดโมเดล 3D ทับลงไป
+            const sceneCanvas = scene.components.screenshot.getCanvas('perspective');
+            ctx.drawImage(sceneCanvas, 0, 0, canvas.width, canvas.height);
+
+            // 4. แปลงเป็นรูปภาพและดาวน์โหลด
+            try {
+                const dataURL = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = 'mars-ar-capture.png';
+                link.href = dataURL;
+                link.click();
+            } catch (err) {
+                alert("ไม่สามารถบันทึกภาพได้โดยตรงบนเบราว์เซอร์นี้ กรุณาใช้การแคปหน้าจอแทนครับ");
+            }
+        });
+
+        // --- Gesture เดิมของคุณ ---
         let startY = 0;
         let startScale = 1;
         const mars = document.querySelector('#mars-wrapper');
-        const sensitivity = 0.005; // ปรับความไวในการขยายที่นี่
+        const sensitivity = 0.005;
 
-        // เมื่อเริ่มแตะหน้าจอ
         window.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) { // ถ้านิ้วเดียว
+            if (e.touches.length === 1) {
                 startY = e.touches[0].pageY;
                 startScale = mars.getAttribute('scale').x;
             }
         });
 
-        // เมื่อเลื่อนนิ้ว
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length === 1) {
                 let currentY = e.touches[0].pageY;
-                let diffY = startY - currentY; // เลื่อนขึ้นเป็นบวก เลื่อนลงเป็นลบ
-                
-                // คำนวณ Scale ใหม่
-                let newScale = startScale + (diffY * sensitivity);
-                
-                // จำกัดขนาดไม่ให้เล็กหรือใหญ่เกินไป
+                let diffY = startY - currentY;
+                let newScale = startScale - (diffY * sensitivity);
                 newScale = Math.min(Math.max(newScale, 0.1), 10); 
-                
                 mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
             }
         });
