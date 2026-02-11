@@ -1,77 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>Zapworks World Tracking - Mars</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://libs.zappar.com/zappar-threejs/2.0.0/zappar-threejs.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MindAR - Markerless Mars</title>
+    
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
 
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-        #launch-button { 
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            padding: 12px 24px; background: #fff; border-radius: 8px; z-index: 10;
-        }
+        body { margin: 0; overflow: hidden; }
+        /* ซ่อน UI สแกนภาพของ MindAR เพราะเราไม่ได้ใช้ */
+        .mindar-ui-overlay { display: none !important; }
     </style>
 </head>
 <body>
 
-    <button id="launch-button">แตะเพื่อวางดาวอังคาร</button>
+    <a-scene 
+        mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiScanning: no;" 
+        embedded 
+        color-management 
+        renderer="colorManagement: true, physicallyCorrectLights: true"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: true">
 
-    <script>
-        // 2. ตั้งค่าฉาก (Scene) และกล้องของ Zappar
-        const scene = new THREE.Scene();
-        const camera = new ZapparThree.Camera();
-        ZapparThree.permissionRequestUI().then(granted => {
-            if (granted) camera.start();
-            else alert("กรุณาอนุญาตให้เข้าถึงกล้อง");
-        });
+        <a-assets>
+            <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
+        </a-assets>
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        document.body.appendChild(renderer.domElement);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        <a-camera position="0 0 0" look-controls="enabled: true"></a-camera>
 
-        // 3. ตั้งค่า World Tracker (วางบนพื้นแบบ Instant)
-        const tracker = new ZapparThree.InstantWorldTracker();
-        const trackerGroup = new ZapparThree.InstantWorldAnchorGroup(camera, tracker);
-        scene.add(trackerGroup);
+        <a-entity 
+            id="mars-entity"
+            gltf-model="#mars-model" 
+            position="0 1.6 -5" 
+            scale="1 1 1"
+            animation-mixer>
+        </a-entity>
 
-        // 4. โหลดโมเดล .glb ของคุณ
-        let mixer;
-        const loader = new THREE.GLTFLoader();
-        loader.load('mars_glb-opt.glb', (gltf) => {
-            const model = gltf.scene;
-            model.scale.set(1, 1, 1);
-            trackerGroup.add(model);
+        <a-light type="ambient" intensity="1"></a-light>
+        <a-light type="directional" position="1 2 1" intensity="0.8"></a-light>
 
-            // สั่งเล่น Animation (หมุน)
-            mixer = new THREE.AnimationMixer(model);
-            gltf.animations.forEach(clip => mixer.clipAction(clip).play());
-        });
+    </a-scene>
 
-        // แสงสว่าง
-        scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-
-        // 5. ระบบ "แตะเพื่อวาง" (ปักหมุดไว้กับที่)
-        let hasPlaced = false;
-        document.getElementById("launch-button").addEventListener("click", () => {
-            hasPlaced = true;
-            document.getElementById("launch-button").style.display = "none";
-        });
-
-        // 6. Loop การแสดงผล
-        const clock = new THREE.Clock();
-        function animate() {
-            requestAnimationFrame(animate);
-            if (!hasPlaced) {
-                // ถ้ายังไม่กดวาง ให้โมเดลไหลตามกล้องไปก่อน (เพื่อหาที่วาง)
-                tracker.setAnchorPoseFromCameraOffset(0, 0, -5); 
-            }
-            if (mixer) mixer.update(clock.getDelta());
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
 </body>
 </html>
