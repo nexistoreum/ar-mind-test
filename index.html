@@ -1,88 +1,76 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars AR - MindAR World Tracking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mars AR - Full Screen World</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-      body { margin: 0; overflow: hidden; background-color: #000; }
-      #ui-container {
-        position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-        z-index: 1000; text-align: center; width: 80%;
+      /* บังคับให้แสดงผลเต็มหน้าจอ */
+      body { margin: 0; overflow: hidden; width: 100vw; height: 100vh; }
+      #ui {
+        position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+        z-index: 1000; text-align: center; width: 100%;
       }
       button {
         padding: 15px 35px; font-size: 18px; font-weight: bold;
-        background: linear-gradient(45deg, #ff4500, #ff8c00);
-        color: white; border: none; border-radius: 50px;
-        cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        background: #ff4500; color: white; border: none; border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer;
       }
-      #status { color: white; margin-top: 10px; font-family: sans-serif; font-size: 14px; }
     </style>
   </head>
 
   <body>
-    <div id="ui-container">
-      <button id="start-btn">เริ่มวางดาวอังคารบนพื้น</button>
-      <div id="status"></div>
+    <div id="ui">
+      <button id="start-btn">เปิดกล้องดูดาวอังคาร</button>
     </div>
 
-    <audio id="ar-audio" src="VENUS_Master.mp3" loop></audio>
+    <audio id="audio" src="VENUS_Master.mp3" loop></audio>
 
     <a-scene 
       mindar-image="autoStart: false;" 
-      embedded 
-      renderer="colorManagement: true, physicallyCorrectLights"
+      embedded="false" 
       vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false">
+      device-orientation-permission-ui="enabled: false"
+      renderer="colorManagement: true, physicallyCorrectLights">
       
       <a-assets>
-        <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
+        <a-asset-item id="mars" src="mars_glb-opt.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: true"></a-camera>
 
-      <a-entity id="mars-anchor" visible="false">
+      <a-entity id="mars-world" visible="false">
         <a-entity 
-          gltf-model="#mars-model" 
-          scale="0.8 0.8 0.8" 
-          position="0 1 -3" 
+          gltf-model="#mars" 
+          scale="0.6 0.6 0.6" 
+          position="0 1.2 -4" 
           animation-mixer>
         </a-entity>
       </a-entity>
 
-      <a-light type="ambient" intensity="1.5"></a-light>
+      <a-light type="ambient" intensity="1"></a-light>
+      <a-light type="directional" position="1 2 1" intensity="1.5"></a-light>
     </a-scene>
 
     <script>
       const sceneEl = document.querySelector('a-scene');
-      const startBtn = document.querySelector('#start-btn');
-      const statusText = document.querySelector('#status');
-      const audio = document.querySelector('#ar-audio');
-      const marsAnchor = document.querySelector('#mars-anchor');
+      const btn = document.querySelector('#start-btn');
+      const audio = document.querySelector('#audio');
+      const mars = document.querySelector('#mars-world');
 
-      startBtn.addEventListener('click', () => {
-        // 1. เริ่มระบบกล้อง MindAR
+      btn.addEventListener('click', () => {
+        // เริ่มระบบกล้อง MindAR (จะเปิดกล้องหลังเต็มจอ)
         sceneEl.systems['mindar-image-system'].start();
-        
-        // 2. ปลดล็อกเสียง
-        audio.play().catch(e => console.log("Audio block:", e));
-        
-        // 3. ปรับ UI และสถานะ
-        startBtn.style.display = 'none';
-        statusText.innerText = "กำลังคำนวณระยะพื้น... กรุณาถือมือนิ่งๆ";
+        audio.play();
+        btn.style.display = 'none';
 
-        // 4. หลังจาก 3 วินาที (ให้ระบบเซนเซอร์เสถียร) จะวางโมเดลไว้ในพิกัดโลกจริง
+        // วางโมเดลหลังจากเปิดกล้อง 2 วินาทีเพื่อให้ระบบ SLAM คำนวณพื้นผิว
         setTimeout(() => {
-          marsAnchor.setAttribute('visible', 'true');
-          statusText.innerText = "วางดาวอังคารแล้ว! ลองเดินเข้าไปหาหรือเดินวนรอบดูครับ";
-          
-          setTimeout(() => {
-            statusText.style.display = 'none';
-          }, 3000);
-        }, 3000);
+          mars.setAttribute('visible', 'true');
+        }, 2000);
       });
     </script>
   </body>
