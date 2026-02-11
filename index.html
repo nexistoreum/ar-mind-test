@@ -44,10 +44,6 @@
     
     <div id="sound-btn">🔊</div>
     <div id="capture-btn"></div>
-    
-    <div id="instructions">
-        ใช้นิ้วลากเพื่อหมุน | 2 นิ้วเพื่อย่อ-ขยาย
-    </div>
 
     <a-scene 
         embedded 
@@ -57,7 +53,7 @@
 
         <a-assets>
             <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
-            <audio id="bg-music" src="your-audio-file.mp3" loop="true"></audio>
+            <audio id="bg-music" src="VENUS_Master.mp3" loop="true"></audio>
         </a-assets>
 
         <a-entity 
@@ -136,7 +132,7 @@
             if (e.touches.length === 1) {
                 let currentY = e.touches[0].pageY;
                 let diffY = startY - currentY;
-                let newScale = startScale + (diffY * sensitivity);
+                let newScale = startScale - (diffY * sensitivity);
                 newScale = Math.min(Math.max(newScale, 0.1), 10); 
                 mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
             }
