@@ -2,34 +2,40 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars AR - Instant Camera</title>
+    <title>Mars AR - Back Camera</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     
     <style>
       body { margin: 0; overflow: hidden; background-color: black; }
       #btn { 
         position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
         z-index: 100; padding: 15px 30px; border-radius: 30px; 
-        background: #ff4500; color: white; border: none; font-size: 18px; font-weight: bold;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer;
+        background: #ff4500; color: white; border: none; font-size: 18px;
       }
     </style>
   </head>
   <body>
-    <button id="btn">แตะเพื่อเริ่ม (เปิดกล้องและเสียง)</button>
+    <button id="btn">แตะเพื่อเริ่ม (กล้องหลัง + เสียง)</button>
     <audio id="audio" src="VENUS_Master.mp3" loop></audio>
 
-    <a-scene mindar-face="autoStart: false" embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene 
+      mindar-image="autoStart: false; filterMinCF:0.001; filterBeta: 0.01;" 
+      embedded 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false">
+      
       <a-assets>
         <a-asset-item id="mars" src="mars_glb-opt.glb"></a-asset-item>
       </a-assets>
 
-      <a-camera active="false" position="0 0 0"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity position="0 0 -2">
-        <a-gltf-model src="#mars" scale="0.5 0.5 0.5" animation-mixer></a-gltf-model>
+      <a-entity id="mars-container">
+        <a-entity position="0 0 -2">
+          <a-gltf-model src="#mars" scale="0.5 0.5 0.5" animation-mixer></a-gltf-model>
+        </a-entity>
       </a-entity>
     </a-scene>
 
@@ -39,15 +45,10 @@
       const audio = document.querySelector('#audio');
 
       btn.addEventListener('click', () => {
-        // เริ่มระบบกล้อง (ใช้ mindar-face-system แทนเพราะเรียกใช้ง่ายกว่าในโหมดเปิดกล้องเลย)
-        sceneEl.systems['mindar-face-system'].start(); 
-        audio.play().catch(e => console.log("Audio play failed:", e));
+        // เริ่มระบบ AR (MindAR จะเลือกกล้องหลังเป็นค่าเริ่มต้น)
+        sceneEl.systems['mindar-image-system'].start(); 
+        audio.play().catch(e => console.log("Audio error"));
         btn.style.display = 'none';
-      });
-
-      // ดักจับข้อผิดพลาดของกล้อง
-      sceneEl.addEventListener("arError", (event) => {
-        alert("ไม่สามารถเปิดกล้องได้: " + event.detail.error);
       });
     </script>
   </body>
