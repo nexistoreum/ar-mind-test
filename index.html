@@ -138,76 +138,39 @@ const loader = document.querySelector('#loader');
 
 captureBtn.addEventListener('click', async () => {
 
-    const scene = document.querySelector('a-scene');
-    const rendererCanvas = scene.renderer.domElement;
-    const video = document.querySelector('video');
-
-    if (!video || !rendererCanvas) {
-        alert("Camera not ready");
-        return;
-    }
-
     loader.style.display = 'block';
 
-    // 🔥 สร้าง canvas เต็มจอ
-    const captureCanvas = document.createElement('canvas');
-    captureCanvas.width = window.innerWidth;
-    captureCanvas.height = window.innerHeight;
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-    const ctx = captureCanvas.getContext('2d');
-
-    // 🔥 วาดกล้องให้เต็มจอ (cover แบบไม่เบี้ยว)
-    const videoRatio = video.videoWidth / video.videoHeight;
-    const screenRatio = window.innerWidth / window.innerHeight;
-
-    let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
-
-    if (videoRatio > screenRatio) {
-        // วิดีโอกว้างกว่า
-        drawHeight = window.innerHeight;
-        drawWidth = drawHeight * videoRatio;
-        offsetX = -(drawWidth - window.innerWidth) / 2;
-    } else {
-        // วิดีโอสูงกว่า
-        drawWidth = window.innerWidth;
-        drawHeight = drawWidth / videoRatio;
-        offsetY = -(drawHeight - window.innerHeight) / 2;
-    }
-
-    ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
-
-    // 🔥 วาด 3D ทับแบบเต็มจอ
-    ctx.drawImage(rendererCanvas, 0, 0, window.innerWidth, window.innerHeight);
-
-    // 🔥 แปลงเป็นไฟล์
-    captureCanvas.toBlob(async (blob) => {
+    html2canvas(document.body, {
+        useCORS: true,
+        backgroundColor: null,
+        scale: window.devicePixelRatio
+    }).then(canvas => {
 
         loader.style.display = 'none';
 
-        const file = new File([blob], "mars-ar-fullscreen.png", { type: "image/png" });
+        canvas.toBlob(async (blob) => {
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
+            const file = new File([blob], "mars-ar-screenshot.png", { type: "image/png" });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
-                    title: 'Mars AR Photo',
-                    text: 'Captured with AR!'
+                    title: "Mars AR",
+                    text: "Captured from AR"
                 });
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error('Share failed:', err);
-                }
+            } else {
+                const link = document.createElement('a');
+                link.download = "mars-ar-screenshot.png";
+                link.href = canvas.toDataURL();
+                link.click();
             }
-        } else {
-            const link = document.createElement('a');
-            link.download = "mars-ar-fullscreen.png";
-            link.href = captureCanvas.toDataURL("image/png");
-            link.click();
-            alert("บันทึกรูปภาพเรียบร้อย (Download)");
-        }
 
-    }, 'image/png');
+        });
+    });
 });
+
 
 
 /* =====================
