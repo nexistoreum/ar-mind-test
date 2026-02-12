@@ -297,6 +297,38 @@ window.addEventListener('touchmove', (e) => {
 
 });
 
+let fakeZ = -5; // ระยะเริ่มต้น
+let baseTilt = null;
+
+window.addEventListener('deviceorientation', (event) => {
+
+  if (event.beta === null) return;
+
+  // beta = ก้ม/เงย (หน้า-หลัง)
+  let tilt = event.beta;
+
+  if (baseTilt === null) {
+    baseTilt = tilt;
+  }
+
+  let diff = tilt - baseTilt;
+
+  // sensitivity ปรับความแรง
+  let sensitivity = 0.02;
+
+  fakeZ = -5 - (diff * sensitivity);
+
+  // จำกัดระยะ
+  fakeZ = Math.min(Math.max(fakeZ, -10), -2);
+
+  let currentPos = mars.getAttribute('position');
+  mars.setAttribute('position', `${currentPos.x} ${currentPos.y} ${fakeZ}`);
+
+  let depthScale = 1 + (Math.abs(fakeZ) * 0.05);
+mars.setAttribute('scale', `${depthScale} ${depthScale} ${depthScale}`);
+
+});
+
 
 </script>
 
