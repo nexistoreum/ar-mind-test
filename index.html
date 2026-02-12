@@ -245,24 +245,58 @@ captureBtn.addEventListener('click', async () => {
    Drag Zoom (Simple)
 ======================= */
 let startY = 0;
+let startModelY = 0;
+
+let startDistance = 0;
 let startScale = 1;
-const sensitivity = 0.005;
+
+function getDistance(touches) {
+  const dx = touches[0].pageX - touches[1].pageX;
+  const dy = touches[0].pageY - touches[1].pageY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
 
 window.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-        startY = e.touches[0].pageY;
-        startScale = mars.getAttribute('scale').x;
-    }
+
+  if (e.touches.length === 1) {
+    // ===== 1 นิ้ว → เลื่อนขึ้นลง =====
+    startY = e.touches[0].pageY;
+    startModelY = mars.getAttribute('position').y;
+  }
+
+  if (e.touches.length === 2) {
+    // ===== 2 นิ้ว → ซูม =====
+    startDistance = getDistance(e.touches);
+    startScale = mars.getAttribute('scale').x;
+  }
+
 });
 
 window.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 1) {
-        let diffY = startY - e.touches[0].pageY;
-        let newScale = startScale - (diffY * sensitivity);
-        newScale = Math.min(Math.max(newScale, 0.1), 10);
-        mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
-    }
+
+  // ===== 1 นิ้ว → เลื่อนแกน Y =====
+  if (e.touches.length === 1) {
+
+    let diffY = startY - e.touches[0].pageY;
+    let newY = startModelY + (diffY * 0.01);
+
+    mars.setAttribute('position', `0 ${newY} -5`);
+  }
+
+  // ===== 2 นิ้ว → Scale =====
+  if (e.touches.length === 2) {
+
+    let currentDistance = getDistance(e.touches);
+    let scaleFactor = currentDistance / startDistance;
+    let newScale = startScale * scaleFactor;
+
+    newScale = Math.min(Math.max(newScale, 0.1), 10);
+
+    mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
+  }
+
 });
+
 
 </script>
 
