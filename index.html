@@ -1,88 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Interactive AR Mars</title>
-    
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Interactive AR Mars</title>
 
-    <style>
-        body { margin: 0; overflow: hidden; }
-        #instructions {
-            position: fixed; bottom: 80px; width: 100%;
-            text-align: center; color: white; z-index: 10;
-            font-family: sans-serif; pointer-events: none;
-            text-shadow: 1px 1px 2px black;
-        }
+<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+<script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
-        #capture-btn {
-            position: fixed; bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            width: 60px; height: 60px;
-            background: white; border-radius: 50%;
-            border: 5px solid rgba(255,255,255,0.5);
-            z-index: 100; cursor: pointer;
-        }
+<style>
+body { margin:0; overflow:hidden; }
 
-        #sound-btn {
-            position: fixed; top: 20px; left: 20px;
-            width: 40px; height: 40px;
-            background: rgba(0,0,0,0.5); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100; cursor: pointer; color: white; font-size: 24px;
-        }
-    </style>
+#capture-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 50%;
+    border: 6px solid rgba(255,255,255,0.6);
+    z-index: 999;
+    cursor: pointer;
+}
+
+#sound-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 45px;
+    height: 45px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    z-index: 999;
+    cursor: pointer;
+}
+</style>
 </head>
 
 <body>
-    
-    <div id="sound-btn">🔊</div>
-    <div id="capture-btn"></div>
 
-    <a-scene 
-        embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; preserveDrawingBuffer: true;"
-        vr-mode-ui="enabled: false"
-        gesture-detector>
+<div id="sound-btn">🔊</div>
+<div id="capture-btn"></div>
 
-        <a-assets>
-            <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
-            <audio id="bg-music" src="VENUS_Master.mp3" loop="true"></audio>
-        </a-assets>
+<a-scene
+    embedded
+    renderer="preserveDrawingBuffer: true;"
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+    vr-mode-ui="enabled: false"
+    gesture-detector>
 
-        <a-entity 
-            id="mars-wrapper"
-            position="0 1.2 -5" 
-            class="clickable"
-            gesture-handler="minScale: 0.1; maxScale: 10">
-            
-            <a-entity 
-                id="mars-model-entity"
-                gltf-model="#mars-model" 
-                scale="1 1 1"
-                animation-mixer>
-            </a-entity>
+    <a-assets>
+        <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
+        <audio id="bg-music" src="VENUS_Master.mp3" loop="true"></audio>
+    </a-assets>
+
+    <a-entity 
+        id="mars-wrapper"
+        position="0 1.2 -5"
+        class="clickable"
+        gesture-handler="minScale: 0.1; maxScale: 10">
+
+        <a-entity
+            gltf-model="#mars-model"
+            scale="1 1 1"
+            animation-mixer>
         </a-entity>
 
-        <a-light type="ambient" intensity="1.5"></a-light>
-        <a-light type="directional" position="1 2 1" intensity="0.5"></a-light>
+    </a-entity>
 
-        <a-camera 
-            look-controls 
-            raycaster="objects: .clickable" 
-            cursor="rayOrigin: mouse;">
-        </a-camera>
+    <a-light type="ambient" intensity="1.5"></a-light>
+    <a-light type="directional" position="1 2 1" intensity="0.5"></a-light>
 
-    </a-scene>
+    <a-camera
+        look-controls
+        raycaster="objects: .clickable"
+        cursor="rayOrigin: mouse;">
+    </a-camera>
+
+</a-scene>
 
 <script>
-/* =======================
+
+/* =====================
    ระบบเสียง
-======================= */
+===================== */
 const soundBtn = document.querySelector('#sound-btn');
 const audio = document.querySelector('#bg-music');
 let isMuted = true;
@@ -90,41 +100,57 @@ let isMuted = true;
 soundBtn.addEventListener('click', () => {
     if (isMuted) {
         audio.play();
-        soundBtn.innerText = '🔊';
+        soundBtn.innerText = "🔊";
         isMuted = false;
     } else {
         audio.pause();
-        soundBtn.innerText = '🔈';
+        soundBtn.innerText = "🔈";
         isMuted = true;
     }
 });
 
-/* =======================
-   ระบบถ่ายรูป (แก้แล้ว)
-======================= */
+/* =====================
+   ระบบถ่ายรูป (รวมกล้อง+3D)
+===================== */
 const captureBtn = document.querySelector('#capture-btn');
 
 captureBtn.addEventListener('click', () => {
-    const scene = document.querySelector('a-scene');
 
-    // รอให้ renderer พร้อม
-    if (!scene.renderer) {
-        alert("Renderer not ready");
+    const scene = document.querySelector('a-scene');
+    const rendererCanvas = scene.renderer.domElement;
+    const video = document.querySelector('video');
+
+    if (!video || !rendererCanvas) {
+        alert("Camera not ready");
         return;
     }
 
-    const rendererCanvas = scene.renderer.domElement;
-    const dataURL = rendererCanvas.toDataURL("image/png");
+    const width = rendererCanvas.width;
+    const height = rendererCanvas.height;
+
+    const captureCanvas = document.createElement('canvas');
+    captureCanvas.width = width;
+    captureCanvas.height = height;
+
+    const ctx = captureCanvas.getContext('2d');
+
+    // วาดภาพจากกล้อง
+    ctx.drawImage(video, 0, 0, width, height);
+
+    // วาด 3D ทับ
+    ctx.drawImage(rendererCanvas, 0, 0, width, height);
+
+    const dataURL = captureCanvas.toDataURL("image/png");
 
     const link = document.createElement('a');
-    link.download = 'mars-ar-photo.png';
+    link.download = "mars-ar-photo.png";
     link.href = dataURL;
     link.click();
 });
 
-/* =======================
+/* =====================
    Gesture Scale
-======================= */
+===================== */
 let startY = 0;
 let startScale = 1;
 const mars = document.querySelector('#mars-wrapper');
@@ -139,13 +165,13 @@ window.addEventListener('touchstart', (e) => {
 
 window.addEventListener('touchmove', (e) => {
     if (e.touches.length === 1) {
-        let currentY = e.touches[0].pageY;
-        let diffY = startY - currentY;
+        let diffY = startY - e.touches[0].pageY;
         let newScale = startScale - (diffY * sensitivity);
-        newScale = Math.min(Math.max(newScale, 0.1), 10); 
+        newScale = Math.min(Math.max(newScale, 0.1), 10);
         mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
     }
 });
+
 </script>
 
 </body>
