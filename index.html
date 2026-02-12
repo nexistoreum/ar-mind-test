@@ -302,33 +302,32 @@ let baseTilt = null;
 
 window.addEventListener('deviceorientation', (event) => {
 
-  if (event.beta === null) return;
-
-  // beta = ก้ม/เงย (หน้า-หลัง)
-  let tilt = event.beta;
+  if (event.beta === null || event.gamma === null) return;
 
   if (baseTilt === null) {
-    baseTilt = tilt;
+    baseTilt = event.beta;
   }
 
-  let diff = tilt - baseTilt;
+  let diffZ = event.beta - baseTilt;
+  let diffX = event.gamma;
 
-  // sensitivity ปรับความแรง
-  let sensitivity = 0.02;
+  let sensitivityZ = 0.05;
+  let sensitivityX = 0.02;
 
-  fakeZ = -5 - (diff * sensitivity);
+  fakeZ = -5 - (diffZ * sensitivityZ);
 
-  // จำกัดระยะ
   fakeZ = Math.min(Math.max(fakeZ, -10), -2);
 
-  let currentPos = mars.getAttribute('position');
-  mars.setAttribute('position', `${currentPos.x} ${currentPos.y} ${fakeZ}`);
+  let newX = diffX * sensitivityX;
 
-  let depthScale = 1 + (Math.abs(fakeZ) * 0.05);
-mars.setAttribute('scale', `${depthScale} ${depthScale} ${depthScale}`);
+  let pos = mars.getAttribute('position');
+
+  mars.setAttribute(
+    'position',
+    `${newX} ${pos.y} ${fakeZ}`
+  );
 
 });
-
 
 </script>
 
