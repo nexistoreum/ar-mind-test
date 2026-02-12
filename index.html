@@ -137,6 +137,7 @@ const captureBtn = document.querySelector('#capture-btn');
 const loader = document.querySelector('#loader');
 
 captureBtn.addEventListener('click', async () => {
+
     const scene = document.querySelector('a-scene');
     const rendererCanvas = scene.renderer.domElement;
     const video = document.querySelector('video');
@@ -146,34 +147,51 @@ captureBtn.addEventListener('click', async () => {
         return;
     }
 
-    loader.style.display = 'block'; // แสดงสถานะกำลังประมวลผล
+    loader.style.display = 'block';
 
-    // สร้าง Canvas ชั่วคราวเพื่อรวมภาพกล้อง + 3D
+    // 🔥 สร้าง canvas เต็มจอ
     const captureCanvas = document.createElement('canvas');
-    captureCanvas.width = video.videoWidth;
-    captureCanvas.height = video.videoHeight;
+    captureCanvas.width = window.innerWidth;
+    captureCanvas.height = window.innerHeight;
+
     const ctx = captureCanvas.getContext('2d');
 
-    // 1. วาดพื้นหลัง (กล้อง)
-    ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
-    
-    // 2. วาดโมเดล 3D ทับลงไป
-    // ปรับสเกลภาพจาก renderer ให้พอดีกับวิดีโอ
-    ctx.drawImage(rendererCanvas, 0, 0, captureCanvas.width, captureCanvas.height);
+    // 🔥 วาดกล้องให้เต็มจอ (cover แบบไม่เบี้ยว)
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const screenRatio = window.innerWidth / window.innerHeight;
 
-    // 3. แปลงเป็น Blob เพื่อใช้งาน Web Share API
+    let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+    if (videoRatio > screenRatio) {
+        // วิดีโอกว้างกว่า
+        drawHeight = window.innerHeight;
+        drawWidth = drawHeight * videoRatio;
+        offsetX = -(drawWidth - window.innerWidth) / 2;
+    } else {
+        // วิดีโอสูงกว่า
+        drawWidth = window.innerWidth;
+        drawHeight = drawWidth / videoRatio;
+        offsetY = -(drawHeight - window.innerHeight) / 2;
+    }
+
+    ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
+
+    // 🔥 วาด 3D ทับแบบเต็มจอ
+    ctx.drawImage(rendererCanvas, 0, 0, window.innerWidth, window.innerHeight);
+
+    // 🔥 แปลงเป็นไฟล์
     captureCanvas.toBlob(async (blob) => {
-        loader.style.display = 'none';
-        
-        const file = new File([blob], "mars-ar-capture.png", { type: "image/png" });
 
-        // ตรวจสอบว่า Browser รองรับการแชร์ไฟล์ไหม (iOS 15+, Android Chrome ล่าสุด)
+        loader.style.display = 'none';
+
+        const file = new File([blob], "mars-ar-fullscreen.png", { type: "image/png" });
+
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
                 await navigator.share({
                     files: [file],
                     title: 'Mars AR Photo',
-                    text: 'Check out my Mars AR capture!'
+                    text: 'Captured with AR!'
                 });
             } catch (err) {
                 if (err.name !== 'AbortError') {
@@ -181,15 +199,16 @@ captureBtn.addEventListener('click', async () => {
                 }
             }
         } else {
-            // กรณีไม่รองรับ (Fallback) ให้ดาวน์โหลดปกติ
             const link = document.createElement('a');
-            link.download = "mars-ar-photo.png";
+            link.download = "mars-ar-fullscreen.png";
             link.href = captureCanvas.toDataURL("image/png");
             link.click();
             alert("บันทึกรูปภาพเรียบร้อย (Download)");
         }
+
     }, 'image/png');
 });
+
 
 /* =====================
    3. ระบบ Pinch to Zoom (ปรับปรุงจากเดิม)
