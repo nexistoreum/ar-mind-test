@@ -1,70 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Interactive AR Mars - Share Edition</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Interactive AR Mars - Share Edition</title>
 
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
+<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+<script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
-    <style>
-        body { margin:0; overflow:hidden; font-family: sans-serif; }
+<style>
+body { margin:0; overflow:hidden; font-family: sans-serif; }
 
-        /* ปุ่มถ่ายรูป */
-        #capture-btn {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            border: 5px solid rgba(0, 0, 0, 0.2);
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            z-index: 999;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #capture-btn:active { transform: translateX(-50%) scale(0.9); }
+#capture-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    border: 5px solid rgba(0,0,0,0.2);
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    z-index: 999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    cursor:pointer;
+}
 
-        /* ปุ่มเสียง */
-        #sound-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 45px;
-            height: 45px;
-            background: rgba(0,0,0,0.6);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 22px;
-            z-index: 999;
-            cursor: pointer;
-        }
+#sound-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 45px;
+    height: 45px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:22px;
+    z-index:999;
+    cursor:pointer;
+}
 
-        /* โหลดเดอร์ตอนเซฟรูป */
-        #loader {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 1000;
-        }
-    </style>
+#loader {
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    background:rgba(0,0,0,0.8);
+    color:white;
+    padding:20px;
+    border-radius:10px;
+    z-index:1000;
+}
+</style>
 </head>
 
 <body>
@@ -74,53 +71,60 @@
 <div id="loader">Processing...</div>
 
 <a-scene
-    embedded
-    renderer="preserveDrawingBuffer: true; antialias: true; alpha: true;"
-    arjs="sourceType: webcam; debugUIEnabled: false;"
-    vr-mode-ui="enabled: false"
-    gesture-detector>
+embedded
+renderer="preserveDrawingBuffer: true; antialias: true; alpha: true;"
+arjs="sourceType: webcam; debugUIEnabled: false;"
+vr-mode-ui="enabled: false"
+gesture-detector>
 
-    <a-assets>
-        <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
-        <audio id="bg-music" src="VENUS_Master.mp3" loop="true"></audio>
-    </a-assets>
+<a-assets>
+    <a-asset-item id="mars-model" src="mars_glb-opt.glb"></a-asset-item>
+    <audio id="bg-music" src="VENUS_Master.mp3" loop="true"></audio>
+</a-assets>
 
-    <a-entity 
-        id="mars-wrapper"
-        position="0 1.2 -5"
-        class="clickable"
-        gesture-handler="minScale: 0.1; maxScale: 10">
+<a-entity id="mars-wrapper"
+position="0 1.2 -5"
+class="clickable"
+gesture-handler="minScale:0.1; maxScale:10">
 
-        <a-entity
-            gltf-model="#mars-model"
-            scale="1 1 1"
-            animation-mixer>
-        </a-entity>
-
+    <a-entity
+    gltf-model="#mars-model"
+    scale="1 1 1"
+    animation-mixer>
     </a-entity>
 
-    <a-light type="ambient" intensity="1.5"></a-light>
-    <a-light type="directional" position="1 2 1" intensity="0.5"></a-light>
+</a-entity>
 
-    <a-camera
-        look-controls
-        raycaster="objects: .clickable"
-        cursor="rayOrigin: mouse;">
-    </a-camera>
+<a-light type="ambient" intensity="1.5"></a-light>
+<a-light type="directional" position="1 2 1" intensity="0.5"></a-light>
+
+<a-camera
+look-controls
+raycaster="objects: .clickable"
+cursor="rayOrigin: mouse;">
+</a-camera>
 
 </a-scene>
 
 <script>
-/* =====================
-   1. ระบบเสียง
-===================== */
+
+/* =======================
+   Variables
+======================= */
 const soundBtn = document.querySelector('#sound-btn');
 const audio = document.querySelector('#bg-music');
+const captureBtn = document.querySelector('#capture-btn');
+const loader = document.querySelector('#loader');
+const mars = document.querySelector('#mars-wrapper');
+
 let isMuted = true;
 
+/* =======================
+   Sound Control
+======================= */
 soundBtn.addEventListener('click', () => {
     if (isMuted) {
-        audio.play().catch(e => console.log("Audio play failed", e));
+        audio.play().catch(()=>{});
         soundBtn.innerText = "🔊";
         isMuted = false;
     } else {
@@ -130,9 +134,9 @@ soundBtn.addEventListener('click', () => {
     }
 });
 
-/* =====================
-   2. ระบบถ่ายรูป & Share (The Pop-up Magic)
-===================== */
+/* =======================
+   Capture AR Screenshot
+======================= */
 captureBtn.addEventListener('click', async () => {
 
     const sceneEl = document.querySelector('a-scene');
@@ -145,63 +149,53 @@ captureBtn.addEventListener('click', async () => {
 
     loader.style.display = 'block';
 
-    // 🔥 รอให้ render frame ล่าสุดก่อน
+    // รอเฟรมล่าสุด
     await new Promise(resolve => requestAnimationFrame(resolve));
 
-    // 🔥 บังคับ render ใหม่อีกรอบ
+    // บังคับ render
     sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
 
     const glCanvas = sceneEl.renderer.domElement;
 
-    // 🔥 ใช้ DPR เพื่อให้ภาพคม
     const dpr = window.devicePixelRatio || 1;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
     const captureCanvas = document.createElement('canvas');
-    captureCanvas.width = window.innerWidth * dpr;
-    captureCanvas.height = window.innerHeight * dpr;
+    captureCanvas.width = width * dpr;
+    captureCanvas.height = height * dpr;
 
     const ctx = captureCanvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // ===== 1️⃣ วาดกล้อง =====
-    ctx.drawImage(
-        video,
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-    );
+    // วาดกล้อง
+    ctx.drawImage(video, 0, 0, width, height);
 
-    // ===== 2️⃣ วาด WebGL (โมเดล AR) =====
+    // วาดโมเดล WebGL
     ctx.drawImage(
         glCanvas,
-        0,
-        0,
+        0, 0,
         glCanvas.width,
         glCanvas.height,
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
+        0, 0,
+        width,
+        height
     );
 
-    // ===== 3️⃣ Export =====
     captureCanvas.toBlob(async (blob) => {
 
         loader.style.display = 'none';
 
-        const file = new File([blob], "mars-ar.png", { type: "image/png" });
+        const file = new File([blob], "mars-ar.png", { type:"image/png" });
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (navigator.canShare && navigator.canShare({ files:[file] })) {
             try {
                 await navigator.share({
-                    files: [file],
-                    title: 'Mars AR',
-                    text: 'Captured with AR'
+                    files:[file],
+                    title:"Mars AR",
+                    text:"Captured with AR"
                 });
-            } catch (err) {
-                console.log(err);
-            }
+            } catch(e){}
         } else {
             const link = document.createElement('a');
             link.download = "mars-ar.png";
@@ -210,18 +204,13 @@ captureBtn.addEventListener('click', async () => {
         }
 
     }, 'image/png');
-
 });
 
-
-
-
-/* =====================
-   3. ระบบ Pinch to Zoom (ปรับปรุงจากเดิม)
-===================== */
+/* =======================
+   Drag Zoom (Simple)
+======================= */
 let startY = 0;
 let startScale = 1;
-const mars = document.querySelector('#mars-wrapper');
 const sensitivity = 0.005;
 
 window.addEventListener('touchstart', (e) => {
@@ -234,7 +223,7 @@ window.addEventListener('touchstart', (e) => {
 window.addEventListener('touchmove', (e) => {
     if (e.touches.length === 1) {
         let diffY = startY - e.touches[0].pageY;
-        let newScale = startScale - (diffY * sensitivity); // เปลี่ยนเป็น + เพื่อให้ลากขึ้นแล้วขยาย
+        let newScale = startScale - (diffY * sensitivity);
         newScale = Math.min(Math.max(newScale, 0.1), 10);
         mars.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
     }
