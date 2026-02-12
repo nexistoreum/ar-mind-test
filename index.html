@@ -133,43 +133,86 @@ soundBtn.addEventListener('click', () => {
 /* =====================
    2. ระบบถ่ายรูป & Share (The Pop-up Magic)
 ===================== */
-const captureBtn = document.querySelector('#capture-btn');
-const loader = document.querySelector('#loader');
-
 captureBtn.addEventListener('click', async () => {
+
+    const sceneEl = document.querySelector('a-scene');
+    const video = document.querySelector('video');
+
+    if (!video || !sceneEl.renderer) {
+        alert("Camera not ready");
+        return;
+    }
 
     loader.style.display = 'block';
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // 🔥 รอให้ render frame ล่าสุดก่อน
+    await new Promise(resolve => requestAnimationFrame(resolve));
 
-    html2canvas(document.body, {
-        useCORS: true,
-        backgroundColor: null,
-        scale: window.devicePixelRatio
-    }).then(canvas => {
+    // 🔥 บังคับ render ใหม่อีกรอบ
+    sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
+
+    const glCanvas = sceneEl.renderer.domElement;
+
+    // 🔥 ใช้ DPR เพื่อให้ภาพคม
+    const dpr = window.devicePixelRatio || 1;
+
+    const captureCanvas = document.createElement('canvas');
+    captureCanvas.width = window.innerWidth * dpr;
+    captureCanvas.height = window.innerHeight * dpr;
+
+    const ctx = captureCanvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    // ===== 1️⃣ วาดกล้อง =====
+    ctx.drawImage(
+        video,
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    // ===== 2️⃣ วาด WebGL (โมเดล AR) =====
+    ctx.drawImage(
+        glCanvas,
+        0,
+        0,
+        glCanvas.width,
+        glCanvas.height,
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    // ===== 3️⃣ Export =====
+    captureCanvas.toBlob(async (blob) => {
 
         loader.style.display = 'none';
 
-        canvas.toBlob(async (blob) => {
+        const file = new File([blob], "mars-ar.png", { type: "image/png" });
 
-            const file = new File([blob], "mars-ar-screenshot.png", { type: "image/png" });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
                 await navigator.share({
                     files: [file],
-                    title: "Mars AR",
-                    text: "Captured from AR"
+                    title: 'Mars AR',
+                    text: 'Captured with AR'
                 });
-            } else {
-                const link = document.createElement('a');
-                link.download = "mars-ar-screenshot.png";
-                link.href = canvas.toDataURL();
-                link.click();
+            } catch (err) {
+                console.log(err);
             }
+        } else {
+            const link = document.createElement('a');
+            link.download = "mars-ar.png";
+            link.href = captureCanvas.toDataURL();
+            link.click();
+        }
 
-        });
-    });
+    }, 'image/png');
+
 });
+
 
 
 
