@@ -169,22 +169,26 @@ captureBtn.addEventListener('click', async () => {
     ctx.scale(dpr, dpr);
 
     // ===== วาดกล้องแบบไม่ยืด (cover) =====
+    // ===== วาดกล้องแบบไม่ยืด ไม่ครอป (contain) =====
     const videoRatio = video.videoWidth / video.videoHeight;
     const screenRatio = width / height;
 
     let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
 
     if (videoRatio > screenRatio) {
-        drawHeight = height;
-        drawWidth = drawHeight * videoRatio;
-        offsetX = -(drawWidth - width) / 2;
-    } else {
+        // วิดีโอกว้างกว่า → จำกัดตามความกว้าง
         drawWidth = width;
-        drawHeight = drawWidth / videoRatio;
-        offsetY = -(drawHeight - height) / 2;
+        drawHeight = width / videoRatio;
+        offsetY = (height - drawHeight) / 2;
+    } else {
+        // วิดีโอสูงกว่า → จำกัดตามความสูง
+        drawHeight = height;
+        drawWidth = height * videoRatio;
+        offsetX = (width - drawWidth) / 2;
     }
 
     ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
+
 
     // วาดโมเดล WebGL
     ctx.drawImage(
