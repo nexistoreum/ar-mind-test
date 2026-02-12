@@ -168,8 +168,23 @@ captureBtn.addEventListener('click', async () => {
     const ctx = captureCanvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // วาดกล้อง
-    ctx.drawImage(video, 0, 0, width, height);
+    // ===== วาดกล้องแบบไม่ยืด (cover) =====
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const screenRatio = width / height;
+
+    let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+    if (videoRatio > screenRatio) {
+        drawHeight = height;
+        drawWidth = drawHeight * videoRatio;
+        offsetX = -(drawWidth - width) / 2;
+    } else {
+        drawWidth = width;
+        drawHeight = drawWidth / videoRatio;
+        offsetY = -(drawHeight - height) / 2;
+    }
+
+    ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
 
     // วาดโมเดล WebGL
     ctx.drawImage(
