@@ -168,7 +168,6 @@ captureBtn.addEventListener('click', async () => {
     const ctx = captureCanvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // ===== วาดกล้องแบบไม่ยืด (cover) =====
     // ===== วาดกล้องแบบไม่ยืด ไม่ครอป (contain) =====
     const videoRatio = video.videoWidth / video.videoHeight;
     const screenRatio = width / height;
@@ -190,34 +189,50 @@ captureBtn.addEventListener('click', async () => {
     ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
 
 
-    // วาดโมเดล WebGL
+    // ===== วาดโมเดล WebGL แบบไม่ยืด =====
+    const glRatio = glCanvas.width / glCanvas.height;
+
+    let glDrawWidth, glDrawHeight, glOffsetX = 0, glOffsetY = 0;
+
+    if (glRatio > screenRatio) {
+        glDrawHeight = height;
+        glDrawWidth = glDrawHeight * glRatio;
+        glOffsetX = -(glDrawWidth - width) / 2;
+    } else {
+        glDrawWidth = width;
+        glDrawHeight = glDrawWidth / glRatio;
+        glOffsetY = -(glDrawHeight - height) / 2;
+    }
+
     ctx.drawImage(
         glCanvas,
         0, 0,
         glCanvas.width,
         glCanvas.height,
-        0, 0,
-        width,
-        height
+        glOffsetX,
+        glOffsetY,
+        glDrawWidth,
+        glDrawHeight
     );
+
 
     captureCanvas.toBlob(async (blob) => {
 
         loader.style.display = 'none';
 
-        const file = new File([blob], "mars-ar.png", { type:"image/png" });
+        const file = new File([blob], "ar.png", { type:"image/png" });
 
         if (navigator.canShare && navigator.canShare({ files:[file] })) {
             try {
                 await navigator.share({
                     files:[file],
-                    title:"Mars AR",
+                    title:"AR",
                     text:"Captured with AR"
                 });
             } catch(e){}
         } else {
             const link = document.createElement('a');
-            link.download = "mars-ar.png";
+            link.download = "ar.png";
             link.href = captureCanvas.toDataURL();
             link.click();
         }
