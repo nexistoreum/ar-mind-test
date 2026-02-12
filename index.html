@@ -91,33 +91,64 @@ isMuted=!isMuted;
 };
 
 /* ===== CAPTURE (เสถียร) ===== */
-const captureBtn = document.querySelector('#capture-btn');
-captureBtn.onclick = async ()=>{
+captureBtn.onclick = async () => {
 
 const scene = document.querySelector('a-scene');
+const video = document.querySelector('video');
+
+if (!video || !scene.renderer) {
+alert("Camera not ready");
+return;
+}
+
+// บังคับ render frame ล่าสุด
 scene.renderer.render(scene.object3D, scene.camera);
 
-const canvas = scene.renderer.domElement;
-const dataURL = canvas.toDataURL("image/png");
+const rendererCanvas = scene.renderer.domElement;
 
-const blob = await (await fetch(dataURL)).blob();
-const file = new File([blob], "mars-ar.png", {type:"image/png"});
+const captureCanvas = document.createElement('canvas');
+captureCanvas.width = video.videoWidth;
+captureCanvas.height = video.videoHeight;
 
-if(navigator.canShare && navigator.canShare({files:[file]})){
-try{
+const ctx = captureCanvas.getContext('2d');
+
+// 1️⃣ วาดภาพกล้อง
+ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+
+// 2️⃣ วาดโมเดลทับ (scale ให้ตรง)
+ctx.drawImage(
+rendererCanvas,
+0, 0,
+rendererCanvas.width,
+rendererCanvas.height,
+0, 0,
+captureCanvas.width,
+captureCanvas.height
+);
+
+// Export
+const blob = await new Promise(resolve => 
+captureCanvas.toBlob(resolve, "image/png")
+);
+
+const file = new File([blob], "mars-ar.png", { type: "image/png" });
+
+if (navigator.canShare && navigator.canShare({ files: [file] })) {
+try {
 await navigator.share({
-files:[file],
-title:"Mars AR",
-text:"My AR Capture"
+files: [file],
+title: "Mars AR",
+text: "My AR Capture"
 });
-}catch(e){}
-}else{
-const link=document.createElement('a');
-link.download="mars-ar.png";
-link.href=dataURL;
+} catch(e){}
+} else {
+const link = document.createElement('a');
+link.download = "mars-ar.png";
+link.href = captureCanvas.toDataURL("image/png");
 link.click();
 }
 };
+
 
 /* ===== DRAG SYSTEM (แกน XZ เท่านั้น) ===== */
 
